@@ -20,7 +20,7 @@ ICON=#("FileLinkActionItems", 5)
 
 [ABOUT]
 
-This script helps to quickly break elements to new oects.=
+This script helps to quickly break elements to new objects.=
 
 [TEST]
 
