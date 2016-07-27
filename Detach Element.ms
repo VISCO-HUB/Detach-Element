@@ -2,7 +2,7 @@
 [INFO] 
 
 NAME = Detach Element
-VERSION = 1.0.0
+VERSION = 1.0.1
 AUTHOR = MastaMan
 DEV = Visco CG
 HELP = 
@@ -22,7 +22,7 @@ ICON=#("FileLinkActionItems", 5)
 
 - BugFix: 3Ds Max hanging=
 - BugFix: Overflow undo buffer=
-* Link to paren objects=
+* Link to parent objects=
 
 [ABOUT]
 
