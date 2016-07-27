@@ -18,6 +18,12 @@ ICON=#("FileLinkActionItems", 5)
 
 * First release =
 
+[1.0.1]
+
+- BugFix: 3Ds Max hanging=
+- BugFix: Overflow undo buffer=
+* Link to paren objects=
+
 [ABOUT]
 
 This script helps to quickly break elements to new objects.=
@@ -103,6 +109,8 @@ rollout  _rDetachElement "Render Element"
 	
 	button btnDetach "Detach" width: 230 height: 35 offset: [0, 15]
 	
+	timer tmrDetach "" active: false interval: 10
+	
 	fn detachElements o iCnt:1 = 
 	(		
 		objList = #()
@@ -142,72 +150,84 @@ rollout  _rDetachElement "Render Element"
 		for i in l do layer.addnode i
 	)
 	
+	on tmrDetach tick do
+	(
+		undo off
+		(
+			s = for i in selection where canConvertTo i Editable_Poly collect i
+			
+			-- Create layer
+			layerNewObjects = undefined
+			if(cbxCreateLayer.checked) do layerNewObjects = createLayer (edtLayerName.text)
+			
+			layerParentObjects = undefined
+			if(cbxCreateLayerParent.checked) do layerParentObjects = createLayer (edtLayerParentName.text)
+			
+			progressStart "Detaching Elements..."
+			escapeEnable
+			disableSceneRedraw()
+			
+			iCount = 1
+			for o in s where classOf o == Editable_Poly do
+			(
+				-- Get parent
+				p = o.parent 
+				
+				-- Keep source object
+				if(cbxKeepSourceObject.checked) do
+				(
+					maxOps.CloneNodes o newNodes: &newNodes
+					o = newNodes[1]
+				)
+				
+				-- Detach to elements
+				convertToPoly o
+				
+				l = detachElements o
+				
+				-- Add children
+				if(cbxCreateDummy.checked) then
+				(
+					d = dummy()
+					addChildren p d
+										
+					if(l.count > 0) do d.pos = l[1].pos
+					
+					addChildren d l				
+				)
+				else
+				(
+					addChildren p l
+				)
+				
+				if(cbxCreateLayer.checked and layerNewObjects != undefined) do addLayerNodes layerNewObjects l
+				if(cbxCreateLayerParent.checked and layerParentObjects != undefined and p != undefined) do addLayerNodes layerParentObjects #(p)
+				
+				-- Remove empty original object
+				delete o
+				
+				-- Set progress bar
+				progressUpdate (100.0 * iCount / l.count)
+				if(getProgressCancel() == true) do exit	
+				iCount += 1
+			)
+			
+			enableSceneRedraw()
+			enableSceneRedraw()
+			enableSceneRedraw()
+			forceCompleteRedraw()
+			
+			progressEnd()
+		)
+		
+		tmrDetach.active = false
+	)
+	
 	on btnDetach pressed do
 	(
 		if(selection.count == 0) do return messageBox "Please select objects!" title: "Warning!"
 				
-		s = for i in selection where canConvertTo i Editable_Poly collect i
-		
-		-- Create layer
-		layerNewObjects = undefined
-		if(cbxCreateLayer.checked) do layerNewObjects = createLayer (edtLayerName.text)
-		
-		layerParentObjects = undefined
-		if(cbxCreateLayerParent.checked) do layerParentObjects = createLayer (edtLayerParentName.text)
-		
-		progressStart "Detaching Elements..."
-		escapeEnable
-		disableSceneRedraw()
-		
-		iCount = 1
-		for o in s where classOf o == Editable_Poly do
-		(
-			-- Get parent
-			p = o.parent 
-			
-			-- Keep source object
-			if(cbxKeepSourceObject.checked) do
-			(
-				maxOps.CloneNodes o newNodes: &newNodes
-				o = newNodes[1]
-			)
-			
-			-- Detach to elements
-			convertToPoly o
-			
-			l = detachElements o
-			
-			-- Add children
-			if(cbxCreateDummy.checked) then
-			(
-				p = dummy()
-				if(l.count > 0) do p.pos = l[1].pos
-				
-				addChildren p l				
-			)
-			else
-			(
-				addChildren p l
-			)
-			
-			if(cbxCreateLayer.checked and layerNewObjects != undefined) do addLayerNodes layerNewObjects l
-			if(cbxCreateLayerParent.checked and layerParentObjects != undefined and p != undefined) do addLayerNodes layerParentObjects #(p)
-			
-			-- Remove empty original object
-			delete o
-			
-			-- Set progress bar
-			progressUpdate (100.0 * iCount / l.count)
-			if(getProgressCancel() == true) do exit	
-			iCount += 1
-		)
-		
-		enableSceneRedraw()
-		enableSceneRedraw()
-		enableSceneRedraw()
-		forceCompleteRedraw()
-		
-		progressEnd()
+		tmrDetach.active = true
 	)
 	
 	on _rDetachElement open do
