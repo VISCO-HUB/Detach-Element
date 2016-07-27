@@ -2,7 +2,7 @@
 [INFO] 
 
 NAME = Detach Element
-VERSION = 1.0.2
+VERSION = 1.0.3
 AUTHOR = MastaMan
 DEV = Visco CG
 HELP = 
@@ -28,6 +28,10 @@ ICON=#("FileLinkActionItems", 5)
 
 - BugFix: Dummy layer set=
 + Added: Dummy transform same as parent transform=
+
+[1.0.3]
+
+* Crete new layer only for dummies not for parent objects=
 
 [ABOUT]
 
@@ -108,7 +112,7 @@ rollout  _rDetachElement "Render Element"
 	
 	group "Parent"
 	(
-		checkbox cbxCreateLayerParent "Create layer for parent objects"
+		checkbox cbxCreateLayerParent "Create layer for dummies"
 		edittext edtLayerParentName "" text: "controllers" enabled: false  bold: true
 	)
 	
@@ -208,7 +212,7 @@ rollout  _rDetachElement "Render Element"
 				)
 				
 				if(cbxCreateLayer.checked and layerNewObjects != undefined) do addLayerNodes layerNewObjects l
-				if(cbxCreateLayerParent.checked and layerParentObjects != undefined and p != undefined) do addLayerNodes layerParentObjects #(p, d)
+				if(cbxCreateLayerParent.checked and layerParentObjects != undefined and p != undefined) do addLayerNodes layerParentObjects #(d)
 				
 				-- Remove empty original object
 				delete o
