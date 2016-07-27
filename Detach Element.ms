@@ -2,7 +2,7 @@
 [INFO] 
 
 NAME = Detach Element
-VERSION = 1.0.1
+VERSION = 1.0.2
 AUTHOR = MastaMan
 DEV = Visco CG
 HELP = 
@@ -23,6 +23,11 @@ ICON=#("FileLinkActionItems", 5)
 - BugFix: 3Ds Max hanging=
 - BugFix: Overflow undo buffer=
 * Link to parent objects=
+
+[1.02]
+
+- BugFix: Dummy layer set=
++ Added: Dummy transform same as parent transform=
 
 [ABOUT]
 
@@ -147,7 +152,7 @@ rollout  _rDetachElement "Render Element"
 	fn addLayerNodes layer l =
 	(
 		if(l == undefined) do return false
-		for i in l do layer.addnode i
+		for i in l where i != undefined do layer.addnode i
 	)
 	
 	on tmrDetach tick do
@@ -186,12 +191,14 @@ rollout  _rDetachElement "Render Element"
 				l = detachElements o
 				
 				-- Add children
+				d = undefined
 				if(cbxCreateDummy.checked) then
 				(
 					d = dummy()
 					addChildren p d
 										
-					if(l.count > 0) do d.pos = l[1].pos
+					if(l.count > 0 and p == undefined) do d.transform = l[1].transform
+					if(p != undefined) do d.transform = p.transform
 					
 					addChildren d l				
 				)
@@ -201,7 +208,7 @@ rollout  _rDetachElement "Render Element"
 				)
 				
 				if(cbxCreateLayer.checked and layerNewObjects != undefined) do addLayerNodes layerNewObjects l
-				if(cbxCreateLayerParent.checked and layerParentObjects != undefined and p != undefined) do addLayerNodes layerParentObjects #(p)
+				if(cbxCreateLayerParent.checked and layerParentObjects != undefined and p != undefined) do addLayerNodes layerParentObjects #(p, d)
 				
 				-- Remove empty original object
 				delete o
